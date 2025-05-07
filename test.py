@@ -139,7 +139,6 @@ def scrape_city_district(driver, city, district):
     os.makedirs("outputs", exist_ok=True)
     filename = f"outputs/{city}_{district or 'genel'}.csv"
     pd.DataFrame(data).to_csv(filename, index=False, encoding="utf-8")
-    df_filtered = df_filtered.drop_duplicates(subset="Ad", keep="first")
     print(f"{filename} kaydedildi.\n")
 
 def run_scraper():
@@ -163,6 +162,10 @@ def run_scraper():
 
     total_time = time.time() - start_time
     print(f"Toplam çalışma süresi: {total_time:.2f} saniye")
+
+    csv_file_name = f"{cities[0]}_{districts[0] or 'genel'}.csv"
+    from tekeindirme import filter_duplicate_emails
+    filter_duplicate_emails(csv_file_name)
 
 if __name__ == "__main__":
     run_scraper()
