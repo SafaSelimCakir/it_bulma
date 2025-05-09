@@ -1,0 +1,11 @@
+{% load scraper_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Filter</title>
+</head>
+<body>
+    <p>{{ test_dict|get_item:"name"|default:"N/A" }}</p>
+</body>
+</html>
