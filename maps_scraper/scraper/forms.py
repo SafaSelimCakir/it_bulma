@@ -12,8 +12,8 @@ COLUMN_CHOICES = [
 ]
 
 class ScrapeForm(forms.Form):
-    country = forms.CharField(max_length=100, label="Country")
-    city = forms.CharField(max_length=100, required=False, label="City (Optional)")
-    category = forms.ChoiceField(choices=CATEGORY_CHOICES, label="Category")
-    filter_column = forms.ChoiceField(choices=COLUMN_CHOICES, required=False, label="Filter Column")
+    country = forms.CharField(max_length=100, label="Şehir")
+    city = forms.CharField(max_length=100, required=False, label="İlçe (Optional)")
+    category = forms.ChoiceField(choices=CATEGORY_CHOICES, label="Kategori")
+    filter_column = forms.ChoiceField(choices=COLUMN_CHOICES, required=False, label="Filtre")
     filter_value = forms.CharField(max_length=100, required=False, label="Filter Value")

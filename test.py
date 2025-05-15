@@ -27,7 +27,7 @@ def get_driver():
     options.add_argument(f"user-agent={get_random_user_agent()}")
     options.add_argument("--disable-gpu")
     options.add_argument("--start-maximized")
-    options.add_argument("--headless=new")
+    #options.add_argument("--headless=new")
     return webdriver.Chrome(options=options)
 
 

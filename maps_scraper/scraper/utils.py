@@ -177,18 +177,43 @@ def scroll_to_bottom(driver, container):
             stable_scrolls = 0
         prev_height = new_height
 
+def filter_wixpress_emails(email_str):
+    if pd.isna(email_str):
+        return ""
+    
+    filtered_emails = [
+        email.strip() for email in email_str.split(",")
+        if email.strip() and not any(domain in email for domain in BLACKLIST_DOMAINS)
+        and re.match(EMAIL_REGEX, email.strip())
+    ]
+    
+    return ", ".join(filtered_emails) if filtered_emails else ""
+
 def apply_custom_filter(df, column=None, value=None):
     """Apply custom filter to DataFrame based on user input."""
     if column and value and column in df.columns:
-        # Case-insensitive partial match for the specified column
-        df = df[df[column].astype(str).str.contains(value, case=False, na=False)]
+        if column == "Email":
+            # Apply email-specific filtering
+            df = df[df["Email"].notna() & 
+                    (df["Email"] != "No Email Found") & 
+                    (df["Email"] != "Error Accessing Site") & 
+                    (df["Email"] != "No Website") & 
+                    (df["Email"] != "")]
+            df["Email"] = df["Email"].apply(filter_wixpress_emails)
+            df = df[df["Email"] != ""]
+            # Additional filter by value if provided
+            if value:
+                df = df[df["Email"].astype(str).str.contains(value, case=False, na=False)]
+        else:
+            # Generic filter for other columns
+            df = df[df[column].astype(str).str.contains(value, case=False, na=False)]
     return df
 
 def filter_data(df, column=None, value=None):
     """Apply default and custom filters to DataFrame."""
-    # Default filter: Remove duplicates based on 'Ad' (from tekeindirme.py)
-    if 'Ad' in df.columns:
-        df = df.drop_duplicates(subset="Ad", keep="first")
+    # Default filter: Remove duplicates based on 'Name' (instead of 'Ad')
+    if 'Name' in df.columns:
+        df = df.drop_duplicates(subset="Name", keep="first")
     
     # Remove rows with empty 'Name' or 'Address'
     df = df[df['Name'].notna() & (df['Name'] != '')]
@@ -251,7 +276,7 @@ def scrape_location(user, country, city, category, filter_column=None, filter_va
 
     # Convert to DataFrame and apply filters
     df = pd.DataFrame(data)
-    df = filter_data(df, filter_column, filter_value)
+    df = filter_data(df, column=filter_column, value=filter_value)
 
     if df.empty:
         print(f"No data after filtering for {location} - {category}")
