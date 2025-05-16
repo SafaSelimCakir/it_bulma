@@ -14,7 +14,6 @@ import requests
 from django.conf import settings
 from .models import ScrapeRequest
 
-# Keyword mapping: main keywords to sub-keywords
 KEYWORD_MAPPING = {
     'restoran': [
         'kebapçı', 'pideci', 'balık restoranı', 'fast food', 'vegan restoran',
@@ -76,7 +75,6 @@ KEYWORD_MAPPING = {
     ]
 }
 
-# Blacklist domains for email filtering
 BLACKLIST_DOMAINS = [
     "sentry.wixpress.com", "sentry-next.wixpress.com", "sentry.io", "jpg", "png",
     "support.yandex.ru", "yandex", "yakalamac", "addresshere", "Sb", "fb", "example",
@@ -191,35 +189,27 @@ def filter_wixpress_emails(email_str):
 
 def apply_custom_filter(df, column=None, value=None):
     """Apply custom filter to DataFrame based on user input."""
-    if column and value and column in df.columns:
+    if column and column in df.columns:
+        df = df[df[column].notna() & (df[column] != '')]
+
         if column == "Email":
-            # Apply email-specific filtering
-            df = df[df["Email"].notna() & 
-                    (df["Email"] != "No Email Found") & 
-                    (df["Email"] != "Error Accessing Site") & 
-                    (df["Email"] != "No Website") & 
-                    (df["Email"] != "")]
-            df["Email"] = df["Email"].apply(filter_wixpress_emails)
-            df = df[df["Email"] != ""]
-            # Additional filter by value if provided
-            if value:
-                df = df[df["Email"].astype(str).str.contains(value, case=False, na=False)]
-        else:
-            # Generic filter for other columns
+            df[column] = df[column].apply(filter_wixpress_emails)
+            df = df[df[column] != ""]
+
+        if value:
             df = df[df[column].astype(str).str.contains(value, case=False, na=False)]
+
     return df
+
 
 def filter_data(df, column=None, value=None):
     """Apply default and custom filters to DataFrame."""
-    # Default filter: Remove duplicates based on 'Name' (instead of 'Ad')
     if 'Name' in df.columns:
         df = df.drop_duplicates(subset="Name", keep="first")
     
-    # Remove rows with empty 'Name' or 'Address'
     df = df[df['Name'].notna() & (df['Name'] != '')]
     df = df[df['Address'].notna() & (df['Address'] != '')]
     
-    # Apply custom filter if provided
     df = apply_custom_filter(df, column, value)
     
     return df
@@ -231,7 +221,6 @@ def scrape_location(user, country, city, category, filter_column=None, filter_va
     time.sleep(3)
     all_links = set()
     
-    # Get the main keyword and its sub-keywords
     search_terms = [category]
     if category in KEYWORD_MAPPING:
         search_terms.extend(KEYWORD_MAPPING[category])
@@ -274,7 +263,6 @@ def scrape_location(user, country, city, category, filter_column=None, filter_va
         print(f"No data scraped for {location} - {category}")
         return None
 
-    # Convert to DataFrame and apply filters
     df = pd.DataFrame(data)
     df = filter_data(df, column=filter_column, value=filter_value)
 
@@ -282,14 +270,12 @@ def scrape_location(user, country, city, category, filter_column=None, filter_va
         print(f"No data after filtering for {location} - {category}")
         return None
 
-    # Generate CSV
     os.makedirs(os.path.join(settings.MEDIA_ROOT, 'csv_files'), exist_ok=True)
     filename = f"{country}_{city or 'general'}_{category.replace(' ', '_')}_{int(time.time())}.csv"
     filepath = os.path.join(settings.MEDIA_ROOT, 'csv_files', filename)
     df.to_csv(filepath, index=False, encoding="utf-8")
     print(f"Saved CSV to {filepath}")
 
-    # Save ScrapeRequest
     scrape_request = ScrapeRequest.objects.create(
         user=user if user.is_authenticated else None,
         country=country,

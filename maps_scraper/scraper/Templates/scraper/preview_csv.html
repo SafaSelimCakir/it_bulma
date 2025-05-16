@@ -10,37 +10,40 @@
 <body class="bg-gray-100">
     <div class="container mx-auto p-4">
         <h1 class="text-2xl font-bold mb-4">CSV Önİzlemesi</h1>
-        <p class="mb-4">
+        <p class="mb-3">
             <strong>Sehir:</strong> {{ scrape_request.country }} |
             <strong>İlçe:</strong> {{ scrape_request.city|default:"N/A" }} |
             <strong>Kategori:</strong> {{ scrape_request.category }}
         </p>
         <a href="{% url 'download_csv' filename=filename %}" class="mb-4 inline-block bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">CSV Dosyasını İndir</a>
         <a href="{% url 'scrape_form' %}" class="mb-4 inline-block text-blue-500 hover:underline">Ana Sayfaya Dön</a>
-        <a href="{% url 'view_downloads' %}" class="mb-4 inline-block text-blue-500 hover:underline">İndirilenleri Gör</a>
-        
+                
         {% if data %}
-            <table class="w-full bg-white shadow-md rounded">
-                <thead>
-                    <tr class="bg-gray-200">
-                        {% for column in columns %}
-                            <th class="p-2 text-left">{{ column }}</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in data %}
-                        <tr>
+            <div class="w-full overflow-x-auto px-[10px]">
+                <table class="min-w-full bg-white shadow-md rounded">
+                    <thead>
+                        <tr class="bg-gray-200">
                             {% for column in columns %}
-                                <td class="p-2">{{ row|get_item:column|default:"N/A" }}</td>
+                                <th class="p-1 text-left">{{ column }}</th>
                             {% endfor %}
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for row in data %}
+                            <tr class="border-t">
+                                {% for column in columns %}
+                                    <td class="p-1">{{ row|get_item:column|default:"N/A" }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% else %}
             <p class="mt-4">No data available in the CSV.</p>
         {% endif %}
+
+
     </div>
 </body>
 </html>
